@@ -3,23 +3,25 @@
 import { useEffect, useRef } from "react";
 
 type ReporterProps = {
-  /*  ⎯⎯ props are only provided on the global-error page ⎯⎯ */
+  /* ⎯ props are only provided on the global-error page ⎯ */
   error?: Error & { digest?: string };
   reset?: () => void;
 };
 
-export default function ErrorReporter({ error, reset }: ReporterProps) {
+export default function ErrorReporter({ error }: ReporterProps) {
   /* ─ instrumentation shared by every route ─ */
-  const lastOverlayMsg = useRef("");
+  const lastOverlayMsg = useRef<string>("");
   const pollRef = useRef<number | null>(null);
 
   useEffect(() => {
     const inIframe = window.parent !== window;
     if (!inIframe) return;
 
-    const send = (payload: unknown) => window.parent.postMessage(payload, "*");
+    const send = (payload: unknown) => {
+      window.parent.postMessage(payload, "*");
+    };
 
-    const onError = (e: ErrorEvent) =>
+    const onError = (e: ErrorEvent) => {
       send({
         type: "ERROR_CAPTURED",
         error: {
@@ -32,8 +34,9 @@ export default function ErrorReporter({ error, reset }: ReporterProps) {
         },
         timestamp: Date.now(),
       });
+    };
 
-    const onReject = (e: PromiseRejectionEvent) =>
+    const onReject = (e: PromiseRejectionEvent) => {
       send({
         type: "ERROR_CAPTURED",
         error: {
@@ -43,6 +46,7 @@ export default function ErrorReporter({ error, reset }: ReporterProps) {
         },
         timestamp: Date.now(),
       });
+    };
 
     const pollOverlay = () => {
       const overlay = document.querySelector("[data-nextjs-dialog-overlay]");
@@ -50,6 +54,7 @@ export default function ErrorReporter({ error, reset }: ReporterProps) {
         overlay?.querySelector(
           "h1, h2, .error-message, [data-nextjs-dialog-body]"
         ) ?? null;
+
       const txt = node?.textContent ?? node?.innerHTML ?? "";
       if (txt && txt !== lastOverlayMsg.current) {
         lastOverlayMsg.current = txt;
@@ -68,13 +73,16 @@ export default function ErrorReporter({ error, reset }: ReporterProps) {
     return () => {
       window.removeEventListener("error", onError);
       window.removeEventListener("unhandledrejection", onReject);
-      if (pollRef.current !== null) clearInterval(pollRef.current);
+      if (pollRef.current !== null) {
+        clearInterval(pollRef.current);
+      }
     };
   }, []);
 
   /* ─ extra postMessage when on the global-error route ─ */
   useEffect(() => {
     if (!error) return;
+
     window.parent.postMessage(
       {
         type: "global-error-reset",
