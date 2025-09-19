@@ -119,6 +119,14 @@ const CATEGORIES: Category[] = [
   },
 ];
 
+const CopyHandler = async (comand: string) => {
+  try{
+    await navigator.clipboard.writeText(comand);
+  } catch (err) {
+    console.error("Failed to copy", err);
+  }
+};
+
 export default function GitCheatsheet({ query }: { query: string }) {
   const q = query.trim().toLowerCase();
   const filtered = useMemo(() => {
@@ -145,7 +153,7 @@ export default function GitCheatsheet({ query }: { query: string }) {
             {cat.commands.map((c) => (
               <li key={c.cmd} className="px-4 sm:px-5 py-3 sm:py-4 grid gap-2">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <code className="font-mono text-[13.5px] sm:text-sm whitespace-pre-wrap rounded bg-[color-mix(in_oklab,var(--color-muted)_20%,transparent)] px-2 py-1 text-[var(--primary)] border border-[color:var(--color-border)]">
+                  <code onClick={() => CopyHandler(c.cmd)} className="font-mono text-[13.5px] sm:text-sm whitespace-pre-wrap rounded bg-[color-mix(in_oklab,var(--color-muted)_20%,transparent)] px-2 py-1 text-[var(--primary)] border border-[color:var(--color-border)]">
                     {c.cmd}
                   </code>
                   <p className="text-sm text-[var(--muted-foreground)]">{c.desc}</p>
